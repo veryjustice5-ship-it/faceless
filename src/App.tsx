@@ -20,7 +20,7 @@ import { MobileBottomBar } from './components/MobileBottomBar';
 import { AccessGate } from './components/AccessGate';
 import { AdminConsoleModal } from './components/AdminConsoleModal';
 import { WhatsAppChatView } from './components/WhatsAppChatView';
-import { MessageSquareDashed, Plus, Key, Shield, MessageSquare, Flame } from 'lucide-react';
+import { MessageSquareDashed, Plus, Key, Shield, MessageSquare, Flame, LogOut } from 'lucide-react';
 
 const SIMULATED_PROMPTS = [
   {
@@ -213,20 +213,34 @@ export default function App() {
     <div className="min-h-screen bg-neutral-950 text-neutral-100 flex flex-col antialiased">
       {/* Admin Status Strip (Only visible when logged in as faculty/admin) */}
       {session.isAdmin && (
-        <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-1.5 text-xs text-amber-300 flex items-center justify-between">
+        <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 text-xs text-amber-300 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Shield className="h-4 w-4 text-amber-400 shrink-0" />
             <span className="font-semibold">
               Faculty & Administrator Session Active · Full Clearance for All Students & Chatrooms
             </span>
           </div>
-          <button
-            onClick={() => setIsAdminModalOpen(true)}
-            className="flex items-center gap-1 font-bold text-amber-400 hover:text-white underline underline-offset-2 ml-4 shrink-0"
-          >
-            <Key className="h-3 w-3" />
-            <span>Open Admin Console</span>
-          </button>
+          <div className="flex items-center gap-3 ml-4 shrink-0">
+            <button
+              onClick={() => setIsAdminModalOpen(true)}
+              className="flex items-center gap-1 font-bold text-amber-400 hover:text-white underline underline-offset-2"
+            >
+              <Key className="h-3.5 w-3.5" />
+              <span>Admin Console</span>
+            </button>
+            <button
+              onClick={() => {
+                if (confirm('Log out of administrator clearance?')) {
+                  logout();
+                }
+              }}
+              className="flex items-center gap-1.5 rounded-lg border border-rose-900/60 bg-rose-950/60 px-2.5 py-1 text-xs font-bold text-rose-300 hover:bg-rose-900 hover:text-white transition-all shadow-sm"
+              title="Log out of Administrator Session"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              <span>Log Out Admin</span>
+            </button>
+          </div>
         </div>
       )}
 
@@ -412,6 +426,7 @@ export default function App() {
               onSelectCourse={setSelectedCourse}
               onOpenStandards={() => setIsStandardsOpen(true)}
               onOpenAdmin={() => setIsAdminModalOpen(true)}
+              onLogoutAdmin={logout}
               onSimulateChatter={handleSimulateChatter}
               totalYaksCount={posts.length}
               activeCodeName={session.accessCodeUsed}
@@ -429,6 +444,7 @@ export default function App() {
         onOpenStandards={() => setIsStandardsOpen(true)}
         onOpenKarma={() => setIsKarmaOpen(true)}
         onOpenAdmin={() => setIsAdminModalOpen(true)}
+        onLogoutAdmin={logout}
         isAdmin={session.isAdmin}
         yakarma={yakarma}
       />
@@ -484,6 +500,7 @@ export default function App() {
         onRemovePost={deleteMyPost}
         chatRooms={rooms}
         onClearChatRoom={clearRoomHistory}
+        onLogoutAdmin={logout}
       />
     </div>
   );

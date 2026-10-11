@@ -26,6 +26,7 @@ export const YakDetailModal: React.FC<YakDetailModalProps> = ({
   const [commentText, setCommentText] = useState('');
   const [commentImage, setCommentImage] = useState<string | null>(null);
   const [isCompressing, setIsCompressing] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
   if (!post) return null;
 
@@ -123,12 +124,15 @@ export const YakDetailModal: React.FC<YakDetailModalProps> = ({
 
                 {/* Post attached photo */}
                 {post.imageUrl && (
-                  <div className="mt-3 overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-950 shadow-sm">
+                  <div
+                    onClick={() => setLightboxImage(post.imageUrl!)}
+                    className="mt-3 overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-950 shadow-sm cursor-pointer group"
+                  >
                     <img
                       src={post.imageUrl}
                       alt="Post picture"
                       loading="lazy"
-                      className="max-h-96 w-full object-cover"
+                      className="max-h-96 w-full object-cover transition-transform group-hover:scale-[1.01]"
                     />
                   </div>
                 )}
@@ -235,12 +239,15 @@ export const YakDetailModal: React.FC<YakDetailModalProps> = ({
                       </p>
 
                       {comment.imageUrl && (
-                        <div className="mt-2 overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950">
+                        <div
+                          onClick={() => setLightboxImage(comment.imageUrl!)}
+                          className="mt-2 overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950 cursor-pointer group"
+                        >
                           <img
                             src={comment.imageUrl}
                             alt="Comment photo"
                             loading="lazy"
-                            className="max-h-64 w-full object-cover"
+                            className="max-h-64 w-full object-cover transition-transform group-hover:scale-[1.01]"
                           />
                         </div>
                       )}
@@ -305,6 +312,28 @@ export const YakDetailModal: React.FC<YakDetailModalProps> = ({
           </form>
         </div>
       </div>
+
+      {/* Lightbox Fullscreen Photo Viewer */}
+      {lightboxImage && (
+        <div
+          onClick={() => setLightboxImage(null)}
+          className="fixed inset-0 z-60 flex items-center justify-center bg-black/90 p-4 backdrop-blur-md animate-in fade-in duration-150"
+        >
+          <div className="relative max-h-[90vh] max-w-4xl" onClick={(e) => e.stopPropagation()}>
+            <img
+              src={lightboxImage}
+              alt="Expanded view"
+              className="max-h-[85vh] w-auto max-w-full rounded-2xl object-contain shadow-2xl"
+            />
+            <button
+              onClick={() => setLightboxImage(null)}
+              className="absolute top-3 right-3 rounded-full bg-neutral-900/80 p-2 text-white hover:bg-neutral-800 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

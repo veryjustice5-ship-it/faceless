@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, BarChart2, Plus, Trash2, ShieldCheck, AlertCircle, Image as ImageIcon } from 'lucide-react';
+import { X, BarChart2, Plus, Trash2, ShieldCheck, AlertCircle, Image as ImageIcon, Camera, UploadCloud } from 'lucide-react';
 import { COURSE_CHANNELS, TOPIC_TAGS } from '../data/initialYaks';
 import { compressImageFile } from '../utils/image';
 
@@ -38,6 +38,7 @@ export const CreateYakModal: React.FC<CreateYakModalProps> = ({
   const [selectedMood, setSelectedMood] = useState('☕ Cramming');
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isProcessingImage, setIsProcessingImage] = useState(false);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [showPoll, setShowPoll] = useState(false);
   const [pollQuestion, setPollQuestion] = useState('');
   const [pollOptions, setPollOptions] = useState<string[]>(['Option 1', 'Option 2']);
@@ -47,17 +48,47 @@ export const CreateYakModal: React.FC<CreateYakModalProps> = ({
   const maxLength = 300;
   const charsRemaining = maxLength - content.length;
 
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const processFile = async (file: File) => {
+    if (!file.type.startsWith('image/')) return;
     setIsProcessingImage(true);
     try {
-      const dataUrl = await compressImageFile(file, 1000, 0.8);
+      const dataUrl = await compressImageFile(file, 1200, 0.82);
       setImageUrl(dataUrl);
     } catch (err) {
       console.error('Image compression error', err);
     } finally {
       setIsProcessingImage(false);
+    }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processFile(file);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      processFile(file);
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith('image/')) {
+        const file = items[i].getAsFile();
+        if (file) {
+          e.preventDefault();
+          processFile(file);
+          break;
+        }
+      }
     }
   };
 
@@ -177,6 +208,7 @@ export const CreateYakModal: React.FC<CreateYakModalProps> = ({
               maxLength={maxLength}
               value={content}
               onChange={(e) => setContent(e.target.value)}
+              onPaste={handlePaste}
               placeholder="What's happening in lecture, the lab, or the library? Keep it constructive, witty, and anonymous..."
               className="w-full resize-none rounded-2xl border border-neutral-800 bg-neutral-900/70 p-4 text-base text-white placeholder-neutral-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors"
             />
@@ -228,12 +260,41 @@ export const CreateYakModal: React.FC<CreateYakModalProps> = ({
             </div>
           </div>
 
-          {/* Picture Upload Section */}
-          <div className="border-t border-neutral-800/80 pt-3">
+          {/* Picture / Photo Upload Section */}
+          <div className="border-t border-neutral-800/80 pt-3.5">
             <div className="flex items-center justify-between mb-2">
-              <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors">
-                <ImageIcon className="h-4 w-4" />
-                <span>{imageUrl ? 'Change Picture' : '+ Attach Picture / Photo'}</span>
+              <span className="text-xs font-semibold text-neutral-300 flex items-center gap-1.5">
+                <Camera className="h-4 w-4 text-emerald-400" />
+                <span>Attach Picture / Photo / Meme</span>
+              </span>
+              {isProcessingImage && (
+                <span className="text-[11px] text-emerald-400 font-mono animate-pulse">
+                  Optimizing photo...
+                </span>
+              )}
+            </div>
+
+            {!imageUrl ? (
+              <label
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsDraggingOver(true);
+                }}
+                onDragLeave={() => setIsDraggingOver(false)}
+                onDrop={handleDrop}
+                className={`relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-4 text-center cursor-pointer transition-all ${
+                  isDraggingOver
+                    ? 'border-emerald-500 bg-emerald-500/10'
+                    : 'border-neutral-800 bg-neutral-950/60 hover:border-neutral-700 hover:bg-neutral-900/60'
+                }`}
+              >
+                <div className="flex items-center gap-2 text-emerald-400 mb-1">
+                  <UploadCloud className="h-5 w-5" />
+                  <span className="text-xs font-bold">Upload Picture</span>
+                </div>
+                <p className="text-[11px] text-neutral-400">
+                  Tap to choose from gallery, camera, or paste from clipboard (Ctrl+V)
+                </p>
                 <input
                   type="file"
                   accept="image/*"
@@ -241,28 +302,35 @@ export const CreateYakModal: React.FC<CreateYakModalProps> = ({
                   className="hidden"
                 />
               </label>
-
-              {isProcessingImage && (
-                <span className="text-[11px] text-neutral-400 font-mono animate-pulse">
-                  Compressing image...
-                </span>
-              )}
-            </div>
-
-            {imageUrl && (
-              <div className="relative mt-2 overflow-hidden rounded-2xl border border-neutral-700 bg-black/40 max-h-56">
+            ) : (
+              <div className="relative overflow-hidden rounded-2xl border border-neutral-700 bg-black/60">
                 <img
                   src={imageUrl}
-                  alt="Post Attachment"
-                  className="w-full h-48 object-cover rounded-xl"
+                  alt="Post Attachment Preview"
+                  className="w-full max-h-64 object-contain rounded-xl bg-neutral-950"
                 />
-                <button
-                  type="button"
-                  onClick={() => setImageUrl(null)}
-                  className="absolute top-2 right-2 rounded-full bg-neutral-900/90 p-1.5 text-neutral-300 hover:text-rose-400 hover:bg-neutral-800 transition-colors shadow-md"
-                >
-                  <X className="h-4 w-4" />
-                </button>
+                <div className="absolute top-2 right-2 flex items-center gap-1.5">
+                  <label
+                    title="Change photo"
+                    className="cursor-pointer rounded-full bg-neutral-900/90 border border-neutral-700 p-2 text-neutral-200 hover:text-white hover:bg-neutral-800 transition-colors shadow-md"
+                  >
+                    <Camera className="h-4 w-4" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setImageUrl(null)}
+                    title="Remove photo"
+                    className="rounded-full bg-neutral-900/90 border border-neutral-700 p-2 text-neutral-200 hover:text-rose-400 hover:bg-rose-950/50 transition-colors shadow-md"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             )}
           </div>

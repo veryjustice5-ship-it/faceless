@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flame, MessageSquare, PlusCircle, Shield, Award, Key } from 'lucide-react';
+import { Flame, MessageSquare, PlusCircle, Shield, Award, Key, LogOut } from 'lucide-react';
 
 interface MobileBottomBarProps {
   currentView: 'feed' | 'chats';
@@ -8,6 +8,7 @@ interface MobileBottomBarProps {
   onOpenStandards: () => void;
   onOpenKarma: () => void;
   onOpenAdmin?: () => void;
+  onLogoutAdmin?: () => void;
   isAdmin?: boolean;
   yakarma: number;
 }
@@ -19,6 +20,7 @@ export const MobileBottomBar: React.FC<MobileBottomBarProps> = ({
   onOpenStandards,
   onOpenKarma,
   onOpenAdmin,
+  onLogoutAdmin,
   isAdmin = false,
   yakarma,
 }) => {
@@ -62,14 +64,33 @@ export const MobileBottomBar: React.FC<MobileBottomBarProps> = ({
         <span className="text-[10px] font-semibold mt-0.5">Rules</span>
       </button>
 
-      {isAdmin && onOpenAdmin ? (
-        <button
-          onClick={onOpenAdmin}
-          className="flex flex-col items-center justify-center min-w-[44px] min-h-[44px] py-1 text-amber-400 font-bold transition-colors"
-        >
-          <Key className="h-5 w-5" />
-          <span className="text-[10px] mt-0.5">Admin</span>
-        </button>
+      {isAdmin ? (
+        <div className="flex items-center gap-1">
+          {onOpenAdmin && (
+            <button
+              onClick={onOpenAdmin}
+              className="flex flex-col items-center justify-center min-w-[38px] min-h-[44px] py-1 text-amber-400 font-bold transition-colors"
+              title="Admin Console"
+            >
+              <Key className="h-5 w-5" />
+              <span className="text-[9px] mt-0.5">Admin</span>
+            </button>
+          )}
+          {onLogoutAdmin && (
+            <button
+              onClick={() => {
+                if (confirm('Log out of administrator clearance?')) {
+                  onLogoutAdmin();
+                }
+              }}
+              className="flex flex-col items-center justify-center min-w-[38px] min-h-[44px] py-1 text-rose-400 font-bold transition-colors"
+              title="Log Out Admin"
+            >
+              <LogOut className="h-5 w-5" />
+              <span className="text-[9px] mt-0.5">Logout</span>
+            </button>
+          )}
+        </div>
       ) : (
         <button
           onClick={onOpenKarma}

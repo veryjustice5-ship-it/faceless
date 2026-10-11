@@ -4,7 +4,7 @@ import { AccessCode, AuthSession } from '../types/auth';
 const CODES_STORAGE_KEY = 'faceless_access_codes_v2';
 const SESSION_STORAGE_KEY = 'faceless_auth_session_v2';
 
-export const ADMIN_MASTER_PIN = 'Justice*2233';
+export const ADMIN_MASTER_PIN = '[Justice*2233]';
 
 const INITIAL_CODES: AccessCode[] = [
   {
@@ -103,8 +103,13 @@ export function useAccessStore() {
     (inputCode: string): { success: boolean; message?: string } => {
       const clean = inputCode.trim().toUpperCase();
 
-      // Guard: Do not allow admin passwords here
-      if (clean === ADMIN_MASTER_PIN.toUpperCase() || clean === 'ADMIN' || clean === 'ADMIN#FACELESS2026') {
+      // Guard: Do not allow admin credentials here
+      if (
+        clean === '[JUSTICE*2233]' ||
+        clean === 'JUSTICE*2233' ||
+        clean === 'ADMIN' ||
+        clean === 'ADMIN#FACELESS2026'
+      ) {
         return {
           success: false,
           message: 'Admin credentials cannot be used as student access codes. Please use the Faculty & Admin Portal below.',
