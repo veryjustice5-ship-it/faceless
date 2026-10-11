@@ -1,0 +1,7 @@
+{
+  "name": "YakCampus - Anonymous Class Feed",
+  "description": "An anonymous campus bulletin for class chatter, candid thoughts, poll voting, and community-moderated discussions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
