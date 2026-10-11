@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { KeyRound, ShieldAlert, Lock, ArrowRight, ShieldCheck, HelpCircle, User, Shield } from 'lucide-react';
 import { FacelessLogo } from './FacelessLogo';
 import { AccessCode } from '../types/auth';
+import campusQuadBanner from '../assets/images/campus_quad_banner_1791683877643.jpg';
 
 interface AccessGateProps {
   onLoginStudent: (code: string) => { success: boolean; message?: string };
@@ -76,7 +77,7 @@ export const AccessGate: React.FC<AccessGateProps> = ({
       {/* Background Atmosphere */}
       <div className="absolute inset-0 z-0">
         <img
-          src="/src/assets/images/campus_quad_banner_1791683877643.jpg"
+          src={campusQuadBanner}
           alt="Campus Quad Background"
           referrerPolicy="no-referrer"
           className="h-full w-full object-cover opacity-15 filter blur-sm scale-105"

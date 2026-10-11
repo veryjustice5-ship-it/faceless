@@ -1,5 +1,6 @@
 import React from 'react';
 import { MessageSquarePlus, ShieldCheck } from 'lucide-react';
+import campusQuadBanner from '../assets/images/campus_quad_banner_1791683877643.jpg';
 
 interface CampusHeroProps {
   onOpenCreate: () => void;
@@ -17,7 +18,7 @@ export const CampusHero: React.FC<CampusHeroProps> = ({
       {/* Background Banner Image with measured contrast scrim */}
       <div className="absolute inset-0 z-0">
         <img
-          src="/src/assets/images/campus_quad_banner_1791683877643.jpg"
+          src={campusQuadBanner}
           alt="Campus Quad at Dusk"
           referrerPolicy="no-referrer"
           className="h-full w-full object-cover opacity-25"
