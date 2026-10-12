@@ -143,7 +143,7 @@ export const WhatsAppChatView: React.FC<WhatsAppChatViewProps> = ({
   );
 
   return (
-    <div className="relative flex h-[calc(100vh-8.5rem)] min-h-[580px] max-h-[820px] w-full overflow-hidden rounded-3xl border border-neutral-800 bg-[#111b21] shadow-2xl">
+    <div className="relative flex h-[calc(100dvh-11rem)] sm:h-[calc(100vh-8.5rem)] sm:min-h-[580px] sm:max-h-[820px] w-full overflow-hidden rounded-2xl sm:rounded-3xl border border-neutral-800 bg-[#111b21] shadow-2xl">
       {/* LEFT COLUMN: Rooms List (WhatsApp Style) */}
       <div
         className={`flex w-full sm:w-80 md:w-96 flex-col border-r border-neutral-800 bg-[#111b21] shrink-0 ${
@@ -151,18 +151,18 @@ export const WhatsAppChatView: React.FC<WhatsAppChatViewProps> = ({
         }`}
       >
         {/* Rooms Header */}
-        <div className="flex h-16 items-center justify-between border-b border-neutral-800/80 px-4 shrink-0 bg-[#202c33]">
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400 text-lg border border-emerald-500/30">
+        <div className="flex h-14 sm:h-16 items-center justify-between border-b border-neutral-800/80 px-3 sm:px-4 shrink-0 bg-[#202c33]">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            <span className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400 text-base sm:text-lg border border-emerald-500/30 shrink-0">
               {userProfile.avatar}
             </span>
-            <div>
-              <span className="text-xs font-bold text-white block">{userProfile.alias}</span>
+            <div className="min-w-0">
+              <span className="text-xs font-bold text-white block truncate">{userProfile.alias}</span>
               <span className="text-[10px] text-emerald-400 font-medium">Anonymous Student</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
             <button
               onClick={() => setShowNewRoomModal(true)}
               title="Create Study Group Room"
@@ -174,16 +174,16 @@ export const WhatsAppChatView: React.FC<WhatsAppChatViewProps> = ({
         </div>
 
         {/* Ephemeral 24hr Notice Banner */}
-        <div className="bg-[#182229] px-4 py-2 text-[11px] text-amber-300/90 border-b border-neutral-800/80 flex items-center justify-between">
+        <div className="bg-[#182229] px-3 sm:px-4 py-2 text-[11px] text-amber-300/90 border-b border-neutral-800/80 flex items-center justify-between">
           <span className="flex items-center gap-1.5 font-medium">
             <Clock className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-            <span>All chat messages clear after 24hrs</span>
+            <span>Messages clear in 24hrs</span>
           </span>
           <span className="text-[10px] text-neutral-400 font-mono">Auto-purge</span>
         </div>
 
         {/* Search Input */}
-        <div className="p-2.5 border-b border-neutral-800/80 bg-[#111b21]">
+        <div className="p-2 sm:p-2.5 border-b border-neutral-800/80 bg-[#111b21]">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-500" />
             <input
@@ -211,11 +211,11 @@ export const WhatsAppChatView: React.FC<WhatsAppChatViewProps> = ({
                   onSelectRoom(room.id);
                   setMobileView('chat');
                 }}
-                className={`w-full flex items-center gap-3 p-3.5 text-left transition-colors ${
+                className={`w-full flex items-center gap-3 p-3 sm:p-3.5 text-left transition-colors ${
                   isSelected ? 'bg-[#2a3942]' : 'hover:bg-[#202c33]'
                 }`}
               >
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#202c33] text-2xl border border-neutral-700/60">
+                <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-full bg-[#202c33] text-xl sm:text-2xl border border-neutral-700/60">
                   {room.icon}
                 </div>
 
@@ -258,28 +258,28 @@ export const WhatsAppChatView: React.FC<WhatsAppChatViewProps> = ({
         }`}
       >
         {/* Chat Room Top Bar */}
-        <div className="flex h-16 items-center justify-between border-b border-neutral-800/80 bg-[#202c33] px-4 shrink-0">
-          <div className="flex items-center gap-3 min-w-0">
+        <div className="flex h-14 sm:h-16 items-center justify-between border-b border-neutral-800/80 bg-[#202c33] px-3 sm:px-4 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               onClick={() => setMobileView('list')}
-              className="sm:hidden -ml-1 mr-0.5 p-1 rounded-full text-neutral-400 hover:text-white"
-              title="Back to rooms"
+              className="sm:hidden -ml-1 mr-0.5 p-1.5 rounded-full text-neutral-400 hover:text-white"
+              title="Back to rooms list"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#111b21] text-xl border border-neutral-700">
+            <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-[#111b21] text-lg sm:text-xl border border-neutral-700">
               {activeRoom?.icon}
             </div>
             <div className="min-w-0">
-              <h3 className="text-sm font-bold text-white truncate flex items-center gap-2">
-                <span>{activeRoom?.name}</span>
-                <span className="rounded bg-emerald-500/20 px-1.5 py-0.2 text-[10px] font-semibold text-emerald-400">
+              <h3 className="text-xs sm:text-sm font-bold text-white truncate flex items-center gap-1.5 sm:gap-2">
+                <span className="truncate">{activeRoom?.name}</span>
+                <span className="rounded bg-emerald-500/20 px-1.5 py-0.2 text-[10px] font-semibold text-emerald-400 shrink-0">
                   {activeRoom?.courseCode}
                 </span>
               </h3>
-              <p className="text-[11px] text-neutral-400 truncate flex items-center gap-1.5">
-                <Clock className="h-3 w-3 text-amber-400" />
-                <span>Disappearing in 24 hours · Anonymous Quad</span>
+              <p className="text-[10px] sm:text-[11px] text-neutral-400 truncate flex items-center gap-1">
+                <Clock className="h-3 w-3 text-amber-400 shrink-0" />
+                <span className="truncate">Disappearing in 24 hours</span>
               </p>
             </div>
           </div>
@@ -503,10 +503,10 @@ export const WhatsAppChatView: React.FC<WhatsAppChatViewProps> = ({
         )}
 
         {/* Bottom Input Controls (WhatsApp Style) */}
-        <div className="relative border-t border-neutral-800/80 bg-[#202c33] p-3 shrink-0">
+        <div className="relative border-t border-neutral-800/80 bg-[#202c33] p-2 sm:p-3 shrink-0">
           {/* Quick Emoji Picker Drawer */}
           {showEmojiPicker && (
-            <div className="absolute bottom-20 left-4 z-20 flex items-center gap-2 rounded-2xl bg-[#182229] border border-neutral-700 p-2 shadow-xl">
+            <div className="absolute bottom-16 sm:bottom-20 left-2 sm:left-4 right-2 sm:right-auto z-20 flex items-center justify-around sm:justify-start gap-1 sm:gap-2 rounded-2xl bg-[#182229] border border-neutral-700 p-2 shadow-xl max-w-full overflow-x-auto scrollbar-none">
               {['😀', '😂', '🔥', '📚', '☕', '😭', '💀', '🎉', '🧠', '💡'].map((e) => (
                 <button
                   key={e}
@@ -515,7 +515,7 @@ export const WhatsAppChatView: React.FC<WhatsAppChatViewProps> = ({
                     setInputText((prev) => prev + e);
                     setShowEmojiPicker(false);
                   }}
-                  className="hover:scale-125 transition-transform text-lg p-1"
+                  className="hover:scale-125 transition-transform text-base sm:text-lg p-1.5 shrink-0"
                 >
                   {e}
                 </button>
@@ -525,11 +525,11 @@ export const WhatsAppChatView: React.FC<WhatsAppChatViewProps> = ({
 
           {/* Attached Picture Preview Strip */}
           {attachedImage && (
-            <div className="relative mb-2.5 inline-flex items-center gap-2.5 rounded-2xl bg-[#111b21] border border-neutral-700 p-2 shadow-lg">
+            <div className="relative mb-2 inline-flex items-center gap-2 rounded-xl bg-[#111b21] border border-neutral-700 p-1.5 sm:p-2 shadow-lg">
               <img
                 src={attachedImage}
                 alt="Selected preview"
-                className="h-16 w-20 rounded-xl object-cover border border-neutral-700"
+                className="h-12 w-16 sm:h-16 sm:w-20 rounded-lg object-cover border border-neutral-700"
               />
               <div className="text-xs text-neutral-300 pr-2">
                 <span className="text-[11px] font-bold text-emerald-400 block">Picture Ready</span>
@@ -538,7 +538,7 @@ export const WhatsAppChatView: React.FC<WhatsAppChatViewProps> = ({
               <button
                 type="button"
                 onClick={() => setAttachedImage(null)}
-                className="rounded-full bg-neutral-800 p-1.5 text-neutral-400 hover:text-rose-400 transition-colors"
+                className="rounded-full bg-neutral-800 p-1 text-neutral-400 hover:text-rose-400 transition-colors"
                 title="Remove photo"
               >
                 <X className="h-3.5 w-3.5" />
@@ -546,11 +546,11 @@ export const WhatsAppChatView: React.FC<WhatsAppChatViewProps> = ({
             </div>
           )}
 
-          <form onSubmit={handleSend} className="flex items-center gap-2">
+          <form onSubmit={handleSend} className="flex items-center gap-1.5 sm:gap-2">
             <button
               type="button"
               onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-              className="rounded-full p-2 text-neutral-400 hover:text-white hover:bg-[#374248] transition-colors"
+              className="rounded-full p-2 text-neutral-400 hover:text-white hover:bg-[#374248] transition-colors shrink-0"
               title="Add emoji"
             >
               <Smile className="h-5 w-5" />
@@ -559,7 +559,7 @@ export const WhatsAppChatView: React.FC<WhatsAppChatViewProps> = ({
             {/* Picture Attachment Button */}
             <label
               title="Attach photo / picture"
-              className="cursor-pointer rounded-full p-2 text-neutral-400 hover:text-emerald-400 hover:bg-[#374248] transition-colors"
+              className="cursor-pointer rounded-full p-2 text-neutral-400 hover:text-emerald-400 hover:bg-[#374248] transition-colors shrink-0"
             >
               <ImageIcon className="h-5 w-5" />
               <input
@@ -580,16 +580,16 @@ export const WhatsAppChatView: React.FC<WhatsAppChatViewProps> = ({
                   ? 'Compressing picture...'
                   : attachedImage
                   ? 'Add a caption (optional)...'
-                  : 'Type an anonymous message (disappears in 24h)...'
+                  : 'Type anonymous message...'
               }
               maxLength={400}
-              className="flex-1 rounded-2xl bg-[#2a3942] px-4 py-2.5 text-sm text-white placeholder-neutral-400 focus:outline-none transition-colors"
+              className="flex-1 rounded-2xl bg-[#2a3942] px-3.5 sm:px-4 py-2 sm:py-2.5 text-base sm:text-sm text-white placeholder-neutral-400 focus:outline-none transition-colors"
             />
 
             <button
               type="submit"
               disabled={(!inputText.trim() && !attachedImage) || isCompressingImage}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500 text-neutral-950 font-bold transition-transform active:scale-95 disabled:opacity-40 disabled:hover:scale-100 shrink-0 shadow-md shadow-emerald-500/20"
+              className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-emerald-500 text-neutral-950 font-bold transition-transform active:scale-95 disabled:opacity-40 disabled:hover:scale-100 shrink-0 shadow-md shadow-emerald-500/20"
             >
               <Send className="h-4 w-4 stroke-[2.5]" />
             </button>

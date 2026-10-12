@@ -14,7 +14,7 @@ export const CampusHero: React.FC<CampusHeroProps> = ({
   activeCourseName,
 }) => {
   return (
-    <div className="relative mb-6 overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900/60 shadow-lg">
+    <div className="relative mb-5 sm:mb-6 overflow-hidden rounded-2xl sm:rounded-3xl border border-neutral-800 bg-neutral-900/60 shadow-lg">
       {/* Background Banner Image with measured contrast scrim */}
       <div className="absolute inset-0 z-0">
         <img
@@ -26,36 +26,36 @@ export const CampusHero: React.FC<CampusHeroProps> = ({
         <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/80 to-transparent" />
       </div>
 
-      <div className="relative z-10 p-5 sm:p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="relative z-10 p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div>
-            <div className="mb-2 flex items-center gap-2 text-xs text-emerald-400 font-semibold tracking-wide">
+            <div className="mb-1.5 flex items-center gap-2 text-xs text-emerald-400 font-semibold tracking-wide">
               <span>{activeCourseName}</span>
               <span aria-hidden="true" className="text-neutral-600">·</span>
               <span>Anonymous Feed</span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+            <h1 className="text-lg sm:text-2xl font-bold tracking-tight text-white leading-snug">
               Speak candidly. Upvote wisdom. Downvote nonsense.
             </h1>
-            <p className="mt-1 text-xs sm:text-sm text-neutral-300 max-w-xl">
+            <p className="mt-1 text-xs sm:text-sm text-neutral-300 max-w-xl leading-relaxed">
               Strictly anonymous peer board. Posts that reach -5 downvotes are automatically purged to maintain campus standards.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 w-full sm:w-auto mt-1 sm:mt-0 shrink-0">
             <button
               onClick={onOpenStandards}
-              className="flex items-center gap-1.5 rounded-xl border border-neutral-700 bg-neutral-900/80 px-3 py-2 text-xs font-medium text-neutral-300 hover:text-white hover:bg-neutral-800 transition-colors"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 rounded-xl border border-neutral-700 bg-neutral-900/80 px-3 py-2 text-xs font-medium text-neutral-300 hover:text-white hover:bg-neutral-800 transition-colors"
             >
-              <ShieldCheck className="h-4 w-4 text-emerald-400" />
+              <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
               <span>Honor Code</span>
             </button>
             <button
               onClick={onOpenCreate}
-              className="flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-xs font-bold text-neutral-950 hover:bg-emerald-400 transition-all shadow-md shadow-emerald-500/20 active:scale-[0.98]"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-3 sm:px-4 py-2 text-xs font-bold text-neutral-950 hover:bg-emerald-400 transition-all shadow-md shadow-emerald-500/20 active:scale-[0.98] whitespace-nowrap"
             >
-              <MessageSquarePlus className="h-4 w-4" />
-              <span>Drop a Thought</span>
+              <MessageSquarePlus className="h-4 w-4 shrink-0" />
+              <span>Drop Thought</span>
             </button>
           </div>
         </div>

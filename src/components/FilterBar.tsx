@@ -25,81 +25,83 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   onSearchChange,
 }) => {
   return (
-    <div className="space-y-3.5 mb-6">
+    <div className="space-y-3.5 mb-5 sm:mb-6">
       {/* Search & Tabs Row */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3">
         {/* Segmented Feed Controls */}
-        <div className="inline-flex items-center rounded-xl bg-neutral-900/90 p-1 border border-neutral-800/80 shadow-inner">
-          <button
-            onClick={() => onTabChange('hot')}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
-              currentTab === 'hot'
-                ? 'bg-neutral-800 text-emerald-400 shadow-sm'
-                : 'text-neutral-400 hover:text-white'
-            }`}
-          >
-            <Flame className="h-3.5 w-3.5" />
-            <span>Hot</span>
-          </button>
+        <div className="w-full sm:w-auto overflow-x-auto scrollbar-none pb-0.5">
+          <div className="inline-flex items-center rounded-xl bg-neutral-900/90 p-1 border border-neutral-800/80 shadow-inner">
+            <button
+              onClick={() => onTabChange('hot')}
+              className={`flex items-center gap-1.5 rounded-lg px-2.5 sm:px-3 py-1.5 text-xs font-semibold transition-all whitespace-nowrap shrink-0 ${
+                currentTab === 'hot'
+                  ? 'bg-neutral-800 text-emerald-400 shadow-sm'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
+            >
+              <Flame className="h-3.5 w-3.5 shrink-0" />
+              <span>Hot</span>
+            </button>
 
-          <button
-            onClick={() => onTabChange('new')}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
-              currentTab === 'new'
-                ? 'bg-neutral-800 text-emerald-400 shadow-sm'
-                : 'text-neutral-400 hover:text-white'
-            }`}
-          >
-            <Clock className="h-3.5 w-3.5" />
-            <span>New</span>
-          </button>
+            <button
+              onClick={() => onTabChange('new')}
+              className={`flex items-center gap-1.5 rounded-lg px-2.5 sm:px-3 py-1.5 text-xs font-semibold transition-all whitespace-nowrap shrink-0 ${
+                currentTab === 'new'
+                  ? 'bg-neutral-800 text-emerald-400 shadow-sm'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
+            >
+              <Clock className="h-3.5 w-3.5 shrink-0" />
+              <span>New</span>
+            </button>
 
-          <button
-            onClick={() => onTabChange('top')}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
-              currentTab === 'top'
-                ? 'bg-neutral-800 text-emerald-400 shadow-sm'
-                : 'text-neutral-400 hover:text-white'
-            }`}
-          >
-            <Trophy className="h-3.5 w-3.5" />
-            <span>Top</span>
-          </button>
+            <button
+              onClick={() => onTabChange('top')}
+              className={`flex items-center gap-1.5 rounded-lg px-2.5 sm:px-3 py-1.5 text-xs font-semibold transition-all whitespace-nowrap shrink-0 ${
+                currentTab === 'top'
+                  ? 'bg-neutral-800 text-emerald-400 shadow-sm'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
+            >
+              <Trophy className="h-3.5 w-3.5 shrink-0" />
+              <span>Top</span>
+            </button>
 
-          <button
-            onClick={() => onTabChange('my-yaks')}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
-              currentTab === 'my-yaks'
-                ? 'bg-neutral-800 text-emerald-400 shadow-sm'
-                : 'text-neutral-400 hover:text-white'
-            }`}
-          >
-            <User className="h-3.5 w-3.5" />
-            <span>My Posts</span>
-          </button>
+            <button
+              onClick={() => onTabChange('my-yaks')}
+              className={`flex items-center gap-1.5 rounded-lg px-2.5 sm:px-3 py-1.5 text-xs font-semibold transition-all whitespace-nowrap shrink-0 ${
+                currentTab === 'my-yaks'
+                  ? 'bg-neutral-800 text-emerald-400 shadow-sm'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
+            >
+              <User className="h-3.5 w-3.5 shrink-0" />
+              <span>My Posts</span>
+            </button>
 
-          <button
-            onClick={() => onTabChange('saved')}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
-              currentTab === 'saved'
-                ? 'bg-neutral-800 text-emerald-400 shadow-sm'
-                : 'text-neutral-400 hover:text-white'
-            }`}
-          >
-            <Bookmark className="h-3.5 w-3.5" />
-            <span>Saved</span>
-          </button>
+            <button
+              onClick={() => onTabChange('saved')}
+              className={`flex items-center gap-1.5 rounded-lg px-2.5 sm:px-3 py-1.5 text-xs font-semibold transition-all whitespace-nowrap shrink-0 ${
+                currentTab === 'saved'
+                  ? 'bg-neutral-800 text-emerald-400 shadow-sm'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
+            >
+              <Bookmark className="h-3.5 w-3.5 shrink-0" />
+              <span>Saved</span>
+            </button>
+          </div>
         </div>
 
         {/* Search input */}
-        <div className="relative min-w-[200px] sm:w-64">
+        <div className="relative w-full sm:w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-500" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search class thoughts..."
-            className="w-full rounded-xl border border-neutral-800 bg-neutral-900/80 py-1.5 pl-8 pr-8 text-xs text-white placeholder-neutral-500 focus:border-emerald-500 focus:outline-none transition-colors"
+            className="w-full rounded-xl border border-neutral-800 bg-neutral-900/80 py-2 sm:py-1.5 pl-8 pr-8 text-xs text-white placeholder-neutral-500 focus:border-emerald-500 focus:outline-none transition-colors"
           />
           {searchQuery && (
             <button

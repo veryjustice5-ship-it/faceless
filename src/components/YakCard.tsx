@@ -76,11 +76,11 @@ export const YakCard: React.FC<YakCardProps> = ({
   return (
     <article
       onClick={() => onOpenThread(post)}
-      className="group relative cursor-pointer rounded-2xl border border-neutral-800/80 bg-neutral-900/60 p-5 transition-all duration-200 hover:border-neutral-700/80 hover:bg-neutral-900/90 shadow-sm"
+      className="group relative cursor-pointer rounded-2xl border border-neutral-800/80 bg-neutral-900/60 p-3.5 sm:p-5 transition-all duration-200 hover:border-neutral-700/80 hover:bg-neutral-900/90 shadow-sm"
     >
       {/* Community Warning if approaching -5 */}
       {isNearPurge && (
-        <div className="mb-3.5 flex items-center justify-between rounded-lg bg-amber-500/10 px-3 py-1.5 text-xs text-amber-300 border border-amber-500/20">
+        <div className="mb-3 flex items-center justify-between rounded-lg bg-amber-500/10 px-2.5 sm:px-3 py-1.5 text-xs text-amber-300 border border-amber-500/20">
           <div className="flex items-center gap-1.5">
             <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
             <span>Community Warning: Score is {post.score}. Post is removed at -5 downvotes.</span>
@@ -89,7 +89,7 @@ export const YakCard: React.FC<YakCardProps> = ({
       )}
 
       {post.isRemoved && showRemovedOverride && (
-        <div className="mb-3 flex items-center justify-between rounded-lg bg-rose-500/10 px-3 py-1.5 text-xs text-rose-300 border border-rose-500/20">
+        <div className="mb-3 flex items-center justify-between rounded-lg bg-rose-500/10 px-2.5 sm:px-3 py-1.5 text-xs text-rose-300 border border-rose-500/20">
           <span>Viewing removed content for peer review</span>
           <button
             onClick={(e) => {
@@ -104,16 +104,16 @@ export const YakCard: React.FC<YakCardProps> = ({
         </div>
       )}
 
-      <div className="flex items-start gap-4">
+      <div className="flex items-start gap-2.5 sm:gap-4">
         {/* Voting Column (Tactile Yik Yak style) */}
         <div
           onClick={(e) => e.stopPropagation()}
-          className="flex flex-col items-center justify-center rounded-xl bg-neutral-950/60 p-1 border border-neutral-800/60 min-w-[44px]"
+          className="flex flex-col items-center justify-center rounded-xl bg-neutral-950/60 p-0.5 sm:p-1 border border-neutral-800/60 min-w-[38px] sm:min-w-[44px] shrink-0"
         >
           <button
             onClick={() => onVote(post.id, 'up')}
             aria-label="Upvote"
-            className={`flex h-9 w-9 items-center justify-center rounded-lg transition-colors ${
+            className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg transition-colors ${
               hasUpvoted
                 ? 'bg-emerald-500 text-neutral-950 shadow-sm shadow-emerald-500/20'
                 : 'text-neutral-400 hover:bg-neutral-800 hover:text-emerald-400'
@@ -123,7 +123,7 @@ export const YakCard: React.FC<YakCardProps> = ({
           </button>
 
           <span
-            className={`my-1 text-sm font-bold font-mono tabular-nums ${
+            className={`my-0.5 sm:my-1 text-xs sm:text-sm font-bold font-mono tabular-nums ${
               post.score > 0
                 ? 'text-emerald-400'
                 : post.score < 0
@@ -137,7 +137,7 @@ export const YakCard: React.FC<YakCardProps> = ({
           <button
             onClick={() => onVote(post.id, 'down')}
             aria-label="Downvote"
-            className={`flex h-9 w-9 items-center justify-center rounded-lg transition-colors ${
+            className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg transition-colors ${
               hasDownvoted
                 ? 'bg-rose-500 text-white shadow-sm shadow-rose-500/20'
                 : 'text-neutral-400 hover:bg-neutral-800 hover:text-rose-400'
@@ -150,7 +150,7 @@ export const YakCard: React.FC<YakCardProps> = ({
         {/* Post Content Area */}
         <div className="flex-1 min-w-0">
           {/* Zero-Pill Unboxed Metadata */}
-          <div className="mb-2.5 flex flex-wrap items-center gap-x-2 text-xs text-neutral-400">
+          <div className="mb-2 flex flex-wrap items-center gap-x-1.5 sm:gap-x-2 gap-y-0.5 text-xs text-neutral-400">
             <span className="font-semibold text-neutral-200">
               {post.authorAvatar} {post.authorAlias}
             </span>
@@ -173,7 +173,7 @@ export const YakCard: React.FC<YakCardProps> = ({
           </div>
 
           {/* Thought text */}
-          <p className="text-base font-normal leading-relaxed text-neutral-100 whitespace-pre-wrap break-words">
+          <p className="text-sm sm:text-base font-normal leading-relaxed text-neutral-100 whitespace-pre-wrap break-words">
             {post.content}
           </p>
 
@@ -184,7 +184,7 @@ export const YakCard: React.FC<YakCardProps> = ({
                 src={post.imageUrl}
                 alt="Post photo"
                 loading="lazy"
-                className="max-h-96 w-full object-cover transition-transform duration-200 hover:opacity-95"
+                className="max-h-80 sm:max-h-96 w-full object-cover transition-transform duration-200 hover:opacity-95"
               />
             </div>
           )}
@@ -193,7 +193,7 @@ export const YakCard: React.FC<YakCardProps> = ({
           {post.poll && (
             <div
               onClick={(e) => e.stopPropagation()}
-              className="mt-3.5 space-y-2 rounded-xl bg-neutral-950/70 p-3.5 border border-neutral-800"
+              className="mt-3 space-y-2 rounded-xl bg-neutral-950/70 p-3 sm:p-3.5 border border-neutral-800"
             >
               <div className="flex items-center justify-between text-xs font-medium text-neutral-300 mb-1">
                 <span className="font-semibold text-neutral-200">{post.poll.question}</span>
@@ -253,39 +253,42 @@ export const YakCard: React.FC<YakCardProps> = ({
           {/* Action Row */}
           <div
             onClick={(e) => e.stopPropagation()}
-            className="mt-4 flex items-center justify-between border-t border-neutral-800/60 pt-3 text-xs text-neutral-400"
+            className="mt-3.5 sm:mt-4 flex items-center justify-between border-t border-neutral-800/60 pt-2.5 sm:pt-3 text-xs text-neutral-400"
           >
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1 sm:gap-4">
               <button
                 onClick={() => onOpenThread(post)}
-                className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white"
+                className="flex items-center gap-1 sm:gap-1.5 rounded-lg px-2 py-1 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white"
               >
-                <MessageCircle className="h-4 w-4" />
-                <span className="font-mono tabular-nums">
-                  {post.commentsCount} {post.commentsCount === 1 ? 'comment' : 'comments'}
+                <MessageCircle className="h-4 w-4 shrink-0" />
+                <span className="font-mono tabular-nums text-xs">
+                  <span className="sm:hidden">{post.commentsCount}</span>
+                  <span className="hidden sm:inline">
+                    {post.commentsCount} {post.commentsCount === 1 ? 'comment' : 'comments'}
+                  </span>
                 </span>
               </button>
 
               <button
                 onClick={handleShare}
-                className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white"
+                className="flex items-center gap-1 sm:gap-1.5 rounded-lg px-2 py-1 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white"
               >
-                <Share2 className="h-4 w-4" />
-                <span>{copied ? 'Copied!' : 'Share'}</span>
+                <Share2 className="h-4 w-4 shrink-0" />
+                <span className="text-xs">{copied ? 'Copied!' : 'Share'}</span>
               </button>
 
               <button
                 onClick={() => onToggleSave(post.id)}
-                className={`flex items-center gap-1.5 rounded-lg px-2 py-1 transition-colors hover:bg-neutral-800 ${
+                className={`flex items-center gap-1 sm:gap-1.5 rounded-lg px-2 py-1 transition-colors hover:bg-neutral-800 ${
                   isSaved ? 'text-emerald-400 font-semibold' : 'text-neutral-400 hover:text-white'
                 }`}
               >
-                <Bookmark className={`h-4 w-4 ${isSaved ? 'fill-emerald-400' : ''}`} />
-                <span>{isSaved ? 'Saved' : 'Save'}</span>
+                <Bookmark className={`h-4 w-4 shrink-0 ${isSaved ? 'fill-emerald-400' : ''}`} />
+                <span className="text-xs">{isSaved ? 'Saved' : 'Save'}</span>
               </button>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
               {isAuthor && onDelete && (
                 <button
                   onClick={() => onDelete(post.id)}
