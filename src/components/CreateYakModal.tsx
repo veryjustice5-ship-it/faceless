@@ -14,7 +14,7 @@ interface CreateYakModalProps {
     imageUrl?: string;
     pollQuestion?: string;
     pollOptions?: string[];
-  }) => void;
+  }) => void | Promise<any>;
 }
 
 const MOODS = [

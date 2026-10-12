@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Quad Feed Posts
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if isValidId(postId) &&
+        incoming().content is string && incoming().content.size() <= 1000 &&
+        incoming().courseTag is string && incoming().courseTag.size() <= 64 &&
+        incoming().authorId is string && incoming().authorId.size() <= 128;
+      allow update: if isValidId(postId);
+      allow delete: if isValidId(postId);
+
+      // Comments subcollection
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if isValidId(commentId) &&
+          incoming().content is string && incoming().content.size() <= 600 &&
+          incoming().authorId is string && incoming().authorId.size() <= 128;
+        allow update: if isValidId(commentId);
+        allow delete: if isValidId(commentId);
+      }
+    }
+
+    // Class Group Chat Rooms
+    match /chatRooms/{roomId} {
+      allow read: if true;
+      allow create, update, delete: if isValidId(roomId);
+
+      // 24h Ephemeral Chat Messages synced across devices
+      match /messages/{messageId} {
+        allow read: if true;
+        allow create: if isValidId(messageId) &&
+          incoming().roomId == roomId &&
+          incoming().senderId is string && incoming().senderId.size() <= 128 &&
+          (incoming().content is string || incoming().imageUrl is string);
+        allow update: if isValidId(messageId);
+        allow delete: if isValidId(messageId);
+      }
+    }
+
+    // Course Access Passes
+    match /accessCodes/{codeId} {
+      allow read: if true;
+      allow create, update, delete: if isValidId(codeId);
+    }
+  }
+}

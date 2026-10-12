@@ -31,10 +31,10 @@ interface WhatsAppChatViewProps {
     content: string,
     replyTo?: { id: string; senderAlias: string; content: string },
     imageUrl?: string
-  ) => void;
-  onToggleReaction: (messageId: string, emoji: string) => void;
-  onCreateRoom: (name: string, courseCode: string, icon: string, description: string) => void;
-  onClearRoom: (roomId: string) => void;
+  ) => void | Promise<any>;
+  onToggleReaction: (messageId: string, emoji: string) => void | Promise<any>;
+  onCreateRoom: (name: string, courseCode: string, icon: string, description: string) => void | Promise<any>;
+  onClearRoom: (roomId: string) => void | Promise<any>;
   currentDeviceId: string;
   userProfile: { alias: string; avatar: string };
   isAdmin: boolean;

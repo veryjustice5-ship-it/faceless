@@ -5,7 +5,7 @@ import { AccessCode } from '../types/auth';
 import campusQuadBanner from '../assets/images/campus_quad_banner_1791683877643.jpg';
 
 interface AccessGateProps {
-  onLoginStudent: (code: string) => { success: boolean; message?: string };
+  onLoginStudent: (code: string) => { success: boolean; message?: string } | Promise<{ success: boolean; message?: string }>;
   onLoginAdmin: (username: string, password: string) => { success: boolean; message?: string };
   availableCodes: AccessCode[];
 }
@@ -30,7 +30,7 @@ export const AccessGate: React.FC<AccessGateProps> = ({
   const [adminError, setAdminError] = useState('');
   const [adminLoading, setAdminLoading] = useState(false);
 
-  const handleStudentSubmit = (e: React.FormEvent) => {
+  const handleStudentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!studentCode.trim()) {
       setStudentError('Please enter your class access code.');
@@ -40,13 +40,16 @@ export const AccessGate: React.FC<AccessGateProps> = ({
     setStudentLoading(true);
     setStudentError('');
 
-    setTimeout(() => {
-      const result = onLoginStudent(studentCode.trim());
+    try {
+      const result = await onLoginStudent(studentCode.trim());
       setStudentLoading(false);
       if (!result.success) {
         setStudentError(result.message || 'Invalid access code. Please try again.');
       }
-    }, 250);
+    } catch {
+      setStudentLoading(false);
+      setStudentError('Error checking code. Please try again.');
+    }
   };
 
   const handleAdminSubmit = (e: React.FormEvent) => {

@@ -30,7 +30,7 @@ interface AdminConsoleModalProps {
     targetCourse: string;
     maxUses?: number;
     createdBy?: string;
-  }) => AccessCode;
+  }) => AccessCode | Promise<AccessCode>;
   onToggleActive: (codeId: string) => void;
   onDeleteCode: (codeId: string) => void;
   posts: YakPost[];
@@ -66,9 +66,9 @@ export const AdminConsoleModal: React.FC<AdminConsoleModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleGenerate = (e: React.FormEvent) => {
+  const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newCode = onGenerateCode({
+    const newCode = await onGenerateCode({
       customCode: customCode.trim() || undefined,
       label: label.trim() || `${targetCourse} Section Pass`,
       targetCourse,

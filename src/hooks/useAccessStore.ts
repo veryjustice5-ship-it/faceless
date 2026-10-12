@@ -1,5 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AccessCode, AuthSession } from '../types/auth';
+import { db, handleFirestoreError, OperationType } from '../lib/firebase';
+import {
+  collection,
+  doc,
+  setDoc,
+  deleteDoc,
+  updateDoc,
+  onSnapshot,
+} from 'firebase/firestore';
 
 const CODES_STORAGE_KEY = 'faceless_access_codes_v2';
 const SESSION_STORAGE_KEY = 'faceless_auth_session_v2';
@@ -43,36 +52,15 @@ const INITIAL_CODES: AccessCode[] = [
 ];
 
 export function useAccessStore() {
-  const [accessCodes, setAccessCodes] = useState<AccessCode[]>([]);
+  const [accessCodes, setAccessCodes] = useState<AccessCode[]>(INITIAL_CODES);
   const [session, setSession] = useState<AuthSession>({
     isAuthenticated: false,
     isAdmin: false,
   });
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Load codes and session
+  // Load session from local storage on mount
   useEffect(() => {
-    // 1. Load codes
-    const storedCodes = localStorage.getItem(CODES_STORAGE_KEY);
-    if (storedCodes) {
-      try {
-        const parsed = JSON.parse(storedCodes);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setAccessCodes(parsed);
-        } else {
-          setAccessCodes(INITIAL_CODES);
-          localStorage.setItem(CODES_STORAGE_KEY, JSON.stringify(INITIAL_CODES));
-        }
-      } catch {
-        setAccessCodes(INITIAL_CODES);
-        localStorage.setItem(CODES_STORAGE_KEY, JSON.stringify(INITIAL_CODES));
-      }
-    } else {
-      setAccessCodes(INITIAL_CODES);
-      localStorage.setItem(CODES_STORAGE_KEY, JSON.stringify(INITIAL_CODES));
-    }
-
-    // 2. Load session
     const storedSession = localStorage.getItem(SESSION_STORAGE_KEY);
     if (storedSession) {
       try {
@@ -82,15 +70,55 @@ export function useAccessStore() {
         setSession({ isAuthenticated: false, isAdmin: false });
       }
     }
-
-    setIsInitialized(true);
   }, []);
 
-  // Save codes helper
-  const saveCodes = (codes: AccessCode[]) => {
-    setAccessCodes(codes);
-    localStorage.setItem(CODES_STORAGE_KEY, JSON.stringify(codes));
-  };
+  // REAL-TIME FIRESTORE LISTENER FOR ACCESS CODES
+  useEffect(() => {
+    const codesCol = collection(db, 'accessCodes');
+    const unsubscribe = onSnapshot(
+      codesCol,
+      async (snapshot) => {
+        if (snapshot.empty) {
+          // Seed initial access codes into Firestore
+          try {
+            for (const c of INITIAL_CODES) {
+              await setDoc(doc(db, 'accessCodes', c.id), c);
+            }
+          } catch (e) {
+            handleFirestoreError(e, OperationType.WRITE, 'accessCodes');
+          }
+          setAccessCodes(INITIAL_CODES);
+        } else {
+          const loaded: AccessCode[] = [];
+          snapshot.forEach((d) => {
+            loaded.push(d.data() as AccessCode);
+          });
+          setAccessCodes(loaded);
+          try {
+            localStorage.setItem(CODES_STORAGE_KEY, JSON.stringify(loaded));
+          } catch {}
+        }
+        setIsInitialized(true);
+      },
+      (error) => {
+        handleFirestoreError(error, OperationType.LIST, 'accessCodes');
+        // Offline cache fallback
+        const stored = localStorage.getItem(CODES_STORAGE_KEY);
+        if (stored) {
+          try {
+            setAccessCodes(JSON.parse(stored));
+          } catch {
+            setAccessCodes(INITIAL_CODES);
+          }
+        } else {
+          setAccessCodes(INITIAL_CODES);
+        }
+        setIsInitialized(true);
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
 
   // Save session helper
   const saveSession = (sess: AuthSession) => {
@@ -98,9 +126,9 @@ export function useAccessStore() {
     localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sess));
   };
 
-  // Verify student access code ONLY (Students cannot use admin credentials here)
+  // Verify student access code ONLY
   const loginWithCode = useCallback(
-    (inputCode: string): { success: boolean; message?: string } => {
+    async (inputCode: string): Promise<{ success: boolean; message?: string }> => {
       const clean = inputCode.trim().toUpperCase();
 
       // Guard: Do not allow admin credentials here
@@ -140,16 +168,21 @@ export function useAccessStore() {
         };
       }
 
-      // Valid student code: increment count
-      const updatedCodes = accessCodes.map((c) => {
-        if (c.id === matched.id) {
-          return { ...c, usedCount: c.usedCount + 1 };
-        }
-        return c;
-      });
-      saveCodes(updatedCodes);
+      // Valid student code: increment count in Firestore
+      const newCount = matched.usedCount + 1;
+      setAccessCodes((prev) =>
+        prev.map((c) => (c.id === matched.id ? { ...c, usedCount: newCount } : c))
+      );
 
-      // Authenticate as STUDENT ONLY
+      try {
+        await updateDoc(doc(db, 'accessCodes', matched.id), {
+          usedCount: newCount,
+        });
+      } catch (err) {
+        handleFirestoreError(err, OperationType.UPDATE, `accessCodes/${matched.id}`);
+      }
+
+      // Authenticate student session
       const newSession: AuthSession = {
         isAuthenticated: true,
         isAdmin: false,
@@ -164,16 +197,14 @@ export function useAccessStore() {
     [accessCodes]
   );
 
-  // Dedicated Admin Authentication with username and password
+  // Dedicated Admin Authentication
   const loginAsAdmin = useCallback(
     (username: string, password: string): { success: boolean; message?: string } => {
       const u = username.trim().toLowerCase();
       const p = password.trim();
 
-      // Accept admin usernames e.g. admin, justice, faculty, instructor, or valid faculty handle
       const isValidUser = u === 'admin' || u === 'justice' || u === 'faculty' || u === 'instructor' || u.length >= 3;
-      // Admin password updated to [Justice*2233] (supports exact string with or without bracket notation)
-      const isValidPass = p === 'Justice*2233' || p === '[Justice*2233]';
+      const isValidPass = p === '[Justice*2233]' || p === 'Justice*2233';
 
       if (!isValidUser || !isValidPass) {
         return {
@@ -205,15 +236,15 @@ export function useAccessStore() {
     saveSession(freshSession);
   }, []);
 
-  // Admin: Generate new code
+  // Admin: Generate new code (Sync to Firestore)
   const generateCode = useCallback(
-    (params: {
+    async (params: {
       customCode?: string;
       label: string;
       targetCourse: string;
       maxUses?: number;
       createdBy?: string;
-    }): AccessCode => {
+    }): Promise<AccessCode> => {
       let codeString = params.customCode?.trim().toUpperCase();
       if (!codeString) {
         const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
@@ -233,43 +264,52 @@ export function useAccessStore() {
         createdBy: params.createdBy || 'Class Admin',
       };
 
-      const updated = [newCode, ...accessCodes];
-      saveCodes(updated);
+      setAccessCodes((prev) => [newCode, ...prev]);
+
+      try {
+        await setDoc(doc(db, 'accessCodes', newCode.id), newCode);
+      } catch (err) {
+        handleFirestoreError(err, OperationType.WRITE, `accessCodes/${newCode.id}`);
+      }
+
       return newCode;
     },
-    [accessCodes]
+    []
   );
 
-  // Admin: Toggle active / inactive
+  // Admin: Toggle active / inactive (Sync to Firestore)
   const toggleCodeActive = useCallback(
-    (codeId: string) => {
-      const updated = accessCodes.map((c) => {
-        if (c.id === codeId) {
-          return { ...c, isActive: !c.isActive };
-        }
-        return c;
-      });
-      saveCodes(updated);
+    async (codeId: string) => {
+      const target = accessCodes.find((c) => c.id === codeId);
+      if (!target) return;
+      const nextActive = !target.isActive;
+
+      setAccessCodes((prev) =>
+        prev.map((c) => (c.id === codeId ? { ...c, isActive: nextActive } : c))
+      );
+
+      try {
+        await updateDoc(doc(db, 'accessCodes', codeId), { isActive: nextActive });
+      } catch (err) {
+        handleFirestoreError(err, OperationType.UPDATE, `accessCodes/${codeId}`);
+      }
     },
     [accessCodes]
   );
 
-  // Admin: Delete code
+  // Admin: Delete code (Sync to Firestore)
   const deleteCode = useCallback(
-    (codeId: string) => {
-      const updated = accessCodes.filter((c) => c.id !== codeId);
-      saveCodes(updated);
-    },
-    [accessCodes]
-  );
+    async (codeId: string) => {
+      setAccessCodes((prev) => prev.filter((c) => c.id !== codeId));
 
-  // Admin: Toggle admin session directly
-  const elevateToAdmin = useCallback(() => {
-    saveSession({
-      ...session,
-      isAdmin: true,
-    });
-  }, [session]);
+      try {
+        await deleteDoc(doc(db, 'accessCodes', codeId));
+      } catch (err) {
+        handleFirestoreError(err, OperationType.DELETE, `accessCodes/${codeId}`);
+      }
+    },
+    []
+  );
 
   return {
     isInitialized,
@@ -281,6 +321,5 @@ export function useAccessStore() {
     generateCode,
     toggleCodeActive,
     deleteCode,
-    elevateToAdmin,
   };
 }

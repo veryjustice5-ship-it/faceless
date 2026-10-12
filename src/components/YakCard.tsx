@@ -7,12 +7,12 @@ interface YakCardProps {
   post: YakPost;
   currentDeviceId: string;
   isSaved: boolean;
-  onVote: (postId: string, direction: 'up' | 'down') => void;
+  onVote: (postId: string, direction: 'up' | 'down') => void | Promise<any>;
   onOpenThread: (post: YakPost) => void;
-  onVotePoll: (postId: string, optionId: string) => void;
+  onVotePoll: (postId: string, optionId: string) => void | Promise<any>;
   onToggleSave: (postId: string) => void;
   onReport: (postId: string) => void;
-  onDelete?: (postId: string) => void;
+  onDelete?: (postId: string) => void | Promise<any>;
 }
 
 export const YakCard: React.FC<YakCardProps> = ({

@@ -8,9 +8,9 @@ interface YakDetailModalProps {
   post: YakPost | null;
   currentDeviceId: string;
   onClose: () => void;
-  onVotePost: (postId: string, direction: 'up' | 'down') => void;
-  onAddComment: (postId: string, content: string, imageUrl?: string) => void;
-  onVoteComment: (postId: string, commentId: string, direction: 'up' | 'down') => void;
+  onVotePost: (postId: string, direction: 'up' | 'down') => void | Promise<any>;
+  onAddComment: (postId: string, content: string, imageUrl?: string) => void | Promise<any>;
+  onVoteComment: (postId: string, commentId: string, direction: 'up' | 'down') => void | Promise<any>;
   onReport: (postId: string) => void;
 }
 

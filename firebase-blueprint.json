@@ -1,0 +1,121 @@
+{
+  "entities": {
+    "Post": {
+      "title": "Post",
+      "description": "An anonymous campus Yak post shared on the Quad feed",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique post ID" },
+        "content": { "type": "string", "description": "Post body text", "maxLength": 500 },
+        "courseTag": { "type": "string", "description": "Course channel tag or ALL", "maxLength": 64 },
+        "topicTag": { "type": "string", "description": "Topic tag", "maxLength": 64 },
+        "mood": { "type": "string", "description": "Mood or vibe label", "maxLength": 64 },
+        "imageUrl": { "type": "string", "description": "Optional attached picture URL or data" },
+        "authorId": { "type": "string", "description": "Anonymous device ID of the author", "maxLength": 128 },
+        "authorAlias": { "type": "string", "description": "Generated anonymous pseudonym", "maxLength": 64 },
+        "authorAvatar": { "type": "string", "description": "Mascot emoji avatar", "maxLength": 16 },
+        "createdAt": { "type": "string", "description": "ISO timestamp of creation" },
+        "score": { "type": "number", "description": "Net vote score" },
+        "upvotes": { "type": "array", "description": "List of device IDs who upvoted" },
+        "downvotes": { "type": "array", "description": "List of device IDs who downvoted" },
+        "commentsCount": { "type": "number", "description": "Total count of comments" },
+        "reportCount": { "type": "number", "description": "Number of community flags" },
+        "reportedBy": { "type": "array", "description": "List of device IDs who flagged" },
+        "isRemoved": { "type": "boolean", "description": "Whether the post reached -5 downvotes or 3 flags" },
+        "removeReason": { "type": "string", "description": "Explanation for removal", "maxLength": 200 }
+      },
+      "required": ["id", "content", "courseTag", "authorId", "createdAt", "score", "upvotes", "downvotes"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "An anonymous comment on a Yak post",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique comment ID" },
+        "postId": { "type": "string", "description": "Parent post ID", "maxLength": 128 },
+        "authorId": { "type": "string", "description": "Anonymous device ID of commenter", "maxLength": 128 },
+        "authorAlias": { "type": "string", "description": "Pseudonym or OP indicator", "maxLength": 64 },
+        "authorAvatar": { "type": "string", "description": "Mascot emoji avatar", "maxLength": 16 },
+        "isOP": { "type": "boolean", "description": "Whether commenter is original poster" },
+        "content": { "type": "string", "description": "Comment content", "maxLength": 500 },
+        "imageUrl": { "type": "string", "description": "Optional attached picture" },
+        "createdAt": { "type": "string", "description": "ISO timestamp of creation" },
+        "score": { "type": "number", "description": "Net vote score" },
+        "upvotes": { "type": "array", "description": "List of device IDs who upvoted" },
+        "downvotes": { "type": "array", "description": "List of device IDs who downvoted" }
+      },
+      "required": ["id", "postId", "authorId", "content", "createdAt", "score", "upvotes", "downvotes"]
+    },
+    "ChatRoom": {
+      "title": "ChatRoom",
+      "description": "An ephemeral 24h class group chat room",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Room ID" },
+        "name": { "type": "string", "description": "Room title", "maxLength": 100 },
+        "courseCode": { "type": "string", "description": "Target course code", "maxLength": 32 },
+        "icon": { "type": "string", "description": "Emoji icon", "maxLength": 16 },
+        "description": { "type": "string", "description": "Room purpose description", "maxLength": 300 },
+        "createdAt": { "type": "string", "description": "Creation timestamp" }
+      },
+      "required": ["id", "name", "courseCode", "icon"]
+    },
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "A real-time message inside a 24h chatroom",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique message ID" },
+        "roomId": { "type": "string", "description": "Parent chatroom ID", "maxLength": 64 },
+        "senderId": { "type": "string", "description": "Device ID of sender", "maxLength": 128 },
+        "senderAlias": { "type": "string", "description": "Pseudonym of sender", "maxLength": 64 },
+        "senderAvatar": { "type": "string", "description": "Emoji avatar", "maxLength": 16 },
+        "senderColor": { "type": "string", "description": "User message color theme", "maxLength": 32 },
+        "content": { "type": "string", "description": "Message text", "maxLength": 1000 },
+        "imageUrl": { "type": "string", "description": "Optional attached picture" },
+        "createdAt": { "type": "string", "description": "ISO timestamp" },
+        "reactions": { "type": "object", "description": "Emoji reactions map" }
+      },
+      "required": ["id", "roomId", "senderId", "senderAlias", "createdAt"]
+    },
+    "AccessCode": {
+      "title": "AccessCode",
+      "description": "Student course enrollment pass or quad access key",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique code record ID" },
+        "code": { "type": "string", "description": "Human-readable uppercase code", "maxLength": 64 },
+        "label": { "type": "string", "description": "Descriptor label", "maxLength": 128 },
+        "targetCourse": { "type": "string", "description": "Course tag or ALL", "maxLength": 32 },
+        "createdAt": { "type": "string", "description": "Timestamp" },
+        "maxUses": { "type": "number", "description": "Maximum uses allowed" },
+        "usedCount": { "type": "number", "description": "Times redeemed" },
+        "isActive": { "type": "boolean", "description": "Whether code is active" },
+        "createdBy": { "type": "string", "description": "Creator label", "maxLength": 64 }
+      },
+      "required": ["id", "code", "targetCourse", "isActive", "usedCount", "maxUses"]
+    }
+  },
+  "firestore": {
+    "/posts/{postId}": {
+      "schema": { "$ref": "#/entities/Post" },
+      "description": "Anonymous Quad posts bulletin"
+    },
+    "/posts/{postId}/comments/{commentId}": {
+      "schema": { "$ref": "#/entities/Comment" },
+      "description": "Comments on a Quad post"
+    },
+    "/chatRooms/{roomId}": {
+      "schema": { "$ref": "#/entities/ChatRoom" },
+      "description": "Ephemeral 24h class group chat channels"
+    },
+    "/chatRooms/{roomId}/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/ChatMessage" },
+      "description": "Real-time messages synced across devices"
+    },
+    "/accessCodes/{codeId}": {
+      "schema": { "$ref": "#/entities/AccessCode" },
+      "description": "Enrollment and course access codes"
+    }
+  }
+}
