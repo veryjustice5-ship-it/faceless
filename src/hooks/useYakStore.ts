@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { YakPost, YakComment, Poll } from '../types/yak';
 import { INITIAL_YAKS, ANONYMOUS_AVATARS, ADJECTIVES } from '../data/initialYaks';
-import { db, handleFirestoreError, OperationType } from '../lib/firebase';
+import { db, handleFirestoreError, OperationType, cleanForFirestore } from '../lib/firebase';
 import {
   collection,
   doc,
@@ -87,7 +87,7 @@ export function useYakStore() {
           // Seed initial campus Quad yaks into Firestore
           try {
             for (const yak of INITIAL_YAKS) {
-              await setDoc(doc(db, 'posts', yak.id), yak);
+              await setDoc(doc(db, 'posts', yak.id), cleanForFirestore(yak));
             }
           } catch (e) {
             handleFirestoreError(e, OperationType.WRITE, 'posts');
@@ -176,7 +176,7 @@ export function useYakStore() {
 
       // Write to Firestore - syncs across all devices!
       try {
-        await updateDoc(doc(db, 'posts', postId), updatedFields);
+        await updateDoc(doc(db, 'posts', postId), cleanForFirestore(updatedFields));
       } catch (err) {
         handleFirestoreError(err, OperationType.UPDATE, `posts/${postId}`);
       }
@@ -210,7 +210,7 @@ export function useYakStore() {
       );
 
       try {
-        await updateDoc(doc(db, 'posts', postId), updatedFields);
+        await updateDoc(doc(db, 'posts', postId), cleanForFirestore(updatedFields));
       } catch (err) {
         handleFirestoreError(err, OperationType.UPDATE, `posts/${postId}`);
       }
@@ -252,7 +252,7 @@ export function useYakStore() {
       );
 
       try {
-        await updateDoc(doc(db, 'posts', postId), { poll: updatedPoll });
+        await updateDoc(doc(db, 'posts', postId), cleanForFirestore({ poll: updatedPoll }));
       } catch (err) {
         handleFirestoreError(err, OperationType.UPDATE, `posts/${postId}`);
       }
@@ -307,7 +307,7 @@ export function useYakStore() {
         downvotes: [],
         commentsCount: 0,
         comments: [],
-        poll: pollData,
+        ...(pollData ? { poll: pollData } : {}),
         reportCount: 0,
         reportedBy: [],
         isRemoved: false,
@@ -317,7 +317,7 @@ export function useYakStore() {
       setPosts((prev) => [newPost, ...prev]);
 
       try {
-        await setDoc(doc(db, 'posts', id), newPost);
+        await setDoc(doc(db, 'posts', id), cleanForFirestore(newPost));
       } catch (err) {
         handleFirestoreError(err, OperationType.WRITE, `posts/${id}`);
       }
@@ -367,10 +367,13 @@ export function useYakStore() {
       );
 
       try {
-        await updateDoc(doc(db, 'posts', postId), {
-          commentsCount: updatedCount,
-          comments: updatedComments,
-        });
+        await updateDoc(
+          doc(db, 'posts', postId),
+          cleanForFirestore({
+            commentsCount: updatedCount,
+            comments: updatedComments,
+          })
+        );
       } catch (err) {
         handleFirestoreError(err, OperationType.UPDATE, `posts/${postId}`);
       }
@@ -423,9 +426,12 @@ export function useYakStore() {
       );
 
       try {
-        await updateDoc(doc(db, 'posts', postId), {
-          comments: updatedComments,
-        });
+        await updateDoc(
+          doc(db, 'posts', postId),
+          cleanForFirestore({
+            comments: updatedComments,
+          })
+        );
       } catch (err) {
         handleFirestoreError(err, OperationType.UPDATE, `posts/${postId}`);
       }
@@ -461,7 +467,7 @@ export function useYakStore() {
   const resetToDefaults = useCallback(async () => {
     for (const y of INITIAL_YAKS) {
       try {
-        await setDoc(doc(db, 'posts', y.id), y);
+        await setDoc(doc(db, 'posts', y.id), cleanForFirestore(y));
       } catch {}
     }
     setSavedIds([]);

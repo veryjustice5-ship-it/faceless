@@ -14,6 +14,30 @@ signInAnonymously(auth).catch((err) => {
   console.warn('Anonymous auth note (fallback to unauthenticated):', err?.message);
 });
 
+/**
+ * Recursively removes any undefined keys because Firestore strictly rejects undefined values.
+ */
+export function cleanForFirestore<T>(data: T): T {
+  if (data === null || data === undefined) {
+    return data;
+  }
+  if (Array.isArray(data)) {
+    return data
+      .filter((item) => item !== undefined)
+      .map((item) => cleanForFirestore(item)) as unknown as T;
+  }
+  if (typeof data === 'object' && !(data instanceof Date)) {
+    const cleaned: Record<string, any> = {};
+    for (const [key, val] of Object.entries(data)) {
+      if (val !== undefined) {
+        cleaned[key] = cleanForFirestore(val);
+      }
+    }
+    return cleaned as T;
+  }
+  return data;
+}
+
 export enum OperationType {
   CREATE = 'create',
   UPDATE = 'update',

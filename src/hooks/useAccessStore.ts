@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AccessCode, AuthSession } from '../types/auth';
-import { db, handleFirestoreError, OperationType } from '../lib/firebase';
+import { db, handleFirestoreError, OperationType, cleanForFirestore } from '../lib/firebase';
 import {
   collection,
   doc,
@@ -82,7 +82,7 @@ export function useAccessStore() {
           // Seed initial access codes into Firestore
           try {
             for (const c of INITIAL_CODES) {
-              await setDoc(doc(db, 'accessCodes', c.id), c);
+              await setDoc(doc(db, 'accessCodes', c.id), cleanForFirestore(c));
             }
           } catch (e) {
             handleFirestoreError(e, OperationType.WRITE, 'accessCodes');
@@ -267,7 +267,7 @@ export function useAccessStore() {
       setAccessCodes((prev) => [newCode, ...prev]);
 
       try {
-        await setDoc(doc(db, 'accessCodes', newCode.id), newCode);
+        await setDoc(doc(db, 'accessCodes', newCode.id), cleanForFirestore(newCode));
       } catch (err) {
         handleFirestoreError(err, OperationType.WRITE, `accessCodes/${newCode.id}`);
       }
@@ -289,7 +289,7 @@ export function useAccessStore() {
       );
 
       try {
-        await updateDoc(doc(db, 'accessCodes', codeId), { isActive: nextActive });
+        await updateDoc(doc(db, 'accessCodes', codeId), cleanForFirestore({ isActive: nextActive }));
       } catch (err) {
         handleFirestoreError(err, OperationType.UPDATE, `accessCodes/${codeId}`);
       }

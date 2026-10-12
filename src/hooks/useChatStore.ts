@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { ChatMessage, ChatRoom } from '../types/chat';
 import { INITIAL_ROOMS, INITIAL_MESSAGES, CHAT_COLORS } from '../data/initialChats';
-import { db, handleFirestoreError, OperationType } from '../lib/firebase';
+import { db, handleFirestoreError, OperationType, cleanForFirestore } from '../lib/firebase';
 import {
   collection,
+  collectionGroup,
   doc,
   setDoc,
   deleteDoc,
@@ -12,8 +13,8 @@ import {
   getDocs,
 } from 'firebase/firestore';
 
-const CHAT_STORAGE_KEY = 'faceless_chat_messages_v2';
-const ROOMS_STORAGE_KEY = 'faceless_chat_rooms_v2';
+const CHAT_STORAGE_KEY = 'faceless_chat_messages_v3';
+const ROOMS_STORAGE_KEY = 'faceless_chat_rooms_v3';
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
 
 export function isMessageExpired(createdAtIso: string): boolean {
@@ -49,6 +50,12 @@ export function useChatStore(deviceId: string, userProfile: { alias: string; ava
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const channelRef = useRef<BroadcastChannel | null>(null);
 
+  // Fallback to localStorage deviceId if prop has not finished resolving yet
+  const effectiveDeviceId =
+    deviceId ||
+    (typeof localStorage !== 'undefined' ? localStorage.getItem('yak_device_id_v2') : '') ||
+    'anon-user';
+
   // Filter out any messages older than 24 hours
   const pruneExpiredMessages = useCallback((msgs: ChatMessage[]): ChatMessage[] => {
     return msgs.filter((m) => !isMessageExpired(m.createdAt));
@@ -60,6 +67,16 @@ export function useChatStore(deviceId: string, userProfile: { alias: string; ava
       try {
         const channel = new BroadcastChannel('faceless_chat_broadcast');
         channelRef.current = channel;
+        channel.onmessage = (event) => {
+          if (event.data?.type === 'NEW_MESSAGE' && event.data.payload) {
+            setMessages((prev) => {
+              if (prev.some((m) => m.id === event.data.payload.id)) return prev;
+              const next = [...prev, event.data.payload];
+              next.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+              return pruneExpiredMessages(next);
+            });
+          }
+        };
         return () => {
           channel.close();
         };
@@ -67,9 +84,9 @@ export function useChatStore(deviceId: string, userProfile: { alias: string; ava
         console.warn('BroadcastChannel error', e);
       }
     }
-  }, []);
+  }, [pruneExpiredMessages]);
 
-  // 1. REAL-TIME FIRESTORE LISTENER FOR ROOMS
+  // 1. REAL-TIME FIRESTORE LISTENER FOR ROOMS (Broadcast to all devices)
   useEffect(() => {
     const roomsCol = collection(db, 'chatRooms');
     const unsubscribe = onSnapshot(
@@ -79,7 +96,7 @@ export function useChatStore(deviceId: string, userProfile: { alias: string; ava
           // Seed initial chat rooms into Firestore so all devices share them
           try {
             for (const r of INITIAL_ROOMS) {
-              await setDoc(doc(db, 'chatRooms', r.id), r);
+              await setDoc(doc(db, 'chatRooms', r.id), cleanForFirestore(r));
             }
           } catch (e) {
             handleFirestoreError(e, OperationType.WRITE, 'chatRooms');
@@ -90,6 +107,12 @@ export function useChatStore(deviceId: string, userProfile: { alias: string; ava
           snapshot.forEach((docSnap) => {
             loadedRooms.push(docSnap.data() as ChatRoom);
           });
+          // Preserve predictable room ordering (Quad room first)
+          loadedRooms.sort((a, b) => {
+            if (a.id === 'room-quad') return -1;
+            if (b.id === 'room-quad') return 1;
+            return a.name.localeCompare(b.name);
+          });
           setRooms(loadedRooms);
           try {
             localStorage.setItem(ROOMS_STORAGE_KEY, JSON.stringify(loadedRooms));
@@ -98,12 +121,13 @@ export function useChatStore(deviceId: string, userProfile: { alias: string; ava
       },
       (error) => {
         handleFirestoreError(error, OperationType.LIST, 'chatRooms');
-        // Fallback to local storage if Firestore connection errors
         const cached = localStorage.getItem(ROOMS_STORAGE_KEY);
         if (cached) {
           try {
             setRooms(JSON.parse(cached));
-          } catch {}
+          } catch {
+            setRooms(INITIAL_ROOMS);
+          }
         }
       }
     );
@@ -111,25 +135,22 @@ export function useChatStore(deviceId: string, userProfile: { alias: string; ava
     return () => unsubscribe();
   }, []);
 
-  // 2. REAL-TIME FIRESTORE LISTENER FOR MESSAGES IN ACTIVE ROOM
+  // 2. REAL-TIME FIRESTORE LISTENER FOR ALL MESSAGES (ACROSS ALL ROOMS VIA COLLECTION GROUP)
   useEffect(() => {
-    if (!activeRoomId) return;
-
-    const messagesCol = collection(db, 'chatRooms', activeRoomId, 'messages');
+    const messagesGroup = collectionGroup(db, 'messages');
     const unsubscribe = onSnapshot(
-      messagesCol,
+      messagesGroup,
       async (snapshot) => {
         if (snapshot.empty) {
-          // Seed room initial messages if Quad room and clean
-          if (activeRoomId === 'room-quad') {
-            const initialForQuad = INITIAL_MESSAGES.filter((m) => m.roomId === 'room-quad');
-            for (const m of initialForQuad) {
-              try {
-                await setDoc(doc(db, 'chatRooms', activeRoomId, 'messages', m.id), m);
-              } catch {}
+          // Seed initial demo messages across all default rooms
+          try {
+            for (const m of INITIAL_MESSAGES) {
+              await setDoc(doc(db, 'chatRooms', m.roomId, 'messages', m.id), cleanForFirestore(m));
             }
+          } catch (e) {
+            handleFirestoreError(e, OperationType.WRITE, 'messages/seed');
           }
-          setMessages([]);
+          setMessages(INITIAL_MESSAGES);
         } else {
           const loaded: ChatMessage[] = [];
           snapshot.forEach((docSnap) => {
@@ -145,20 +166,23 @@ export function useChatStore(deviceId: string, userProfile: { alias: string; ava
         }
       },
       (error) => {
-        handleFirestoreError(error, OperationType.LIST, `chatRooms/${activeRoomId}/messages`);
-        // Fallback to local cache
+        handleFirestoreError(error, OperationType.LIST, 'messages (collectionGroup)');
         const cached = localStorage.getItem(CHAT_STORAGE_KEY);
         if (cached) {
           try {
             const parsed = JSON.parse(cached);
             setMessages(pruneExpiredMessages(parsed));
-          } catch {}
+          } catch {
+            setMessages(INITIAL_MESSAGES);
+          }
+        } else {
+          setMessages(INITIAL_MESSAGES);
         }
       }
     );
 
     return () => unsubscribe();
-  }, [activeRoomId, pruneExpiredMessages]);
+  }, [pruneExpiredMessages]);
 
   // 3. Periodic timer to prune 24h expired messages
   useEffect(() => {
@@ -177,7 +201,7 @@ export function useChatStore(deviceId: string, userProfile: { alias: string; ava
     return () => clearInterval(pruneTimer);
   }, [pruneExpiredMessages]);
 
-  // SEND A MESSAGE (SYNCED TO FIRESTORE IN REAL-TIME)
+  // SEND A MESSAGE (SYNCED TO FIRESTORE IN REAL-TIME TO ALL DEVICES)
   const sendMessage = useCallback(
     async (
       roomId: string,
@@ -193,15 +217,15 @@ export function useChatStore(deviceId: string, userProfile: { alias: string; ava
       const newMsg: ChatMessage = {
         id: msgId,
         roomId,
-        senderId: deviceId,
+        senderId: effectiveDeviceId,
         senderAlias: userProfile.alias,
         senderAvatar: userProfile.avatar,
         senderColor: randomColor,
         content: content.trim(),
-        imageUrl,
         createdAt: new Date().toISOString(),
-        replyTo,
         reactions: {},
+        ...(imageUrl ? { imageUrl } : {}),
+        ...(replyTo ? { replyTo } : {}),
       };
 
       // Optimistic update
@@ -212,7 +236,8 @@ export function useChatStore(deviceId: string, userProfile: { alias: string; ava
 
       // Write to Firestore - broadcasts to ALL devices in real-time
       try {
-        await setDoc(doc(db, 'chatRooms', roomId, 'messages', msgId), newMsg);
+        const payload = cleanForFirestore(newMsg);
+        await setDoc(doc(db, 'chatRooms', roomId, 'messages', msgId), payload);
       } catch (err) {
         handleFirestoreError(err, OperationType.WRITE, `chatRooms/${roomId}/messages/${msgId}`);
       }
@@ -227,7 +252,7 @@ export function useChatStore(deviceId: string, userProfile: { alias: string; ava
 
       return newMsg;
     },
-    [deviceId, userProfile, pruneExpiredMessages]
+    [effectiveDeviceId, userProfile, pruneExpiredMessages]
   );
 
   // TOGGLE EMOJI REACTION (SYNCED TO FIRESTORE)
@@ -238,10 +263,10 @@ export function useChatStore(deviceId: string, userProfile: { alias: string; ava
 
       const currentReactions = target.reactions || {};
       const currentUsers = currentReactions[emoji] || [];
-      const hasReacted = currentUsers.includes(deviceId);
+      const hasReacted = currentUsers.includes(effectiveDeviceId);
       const nextUsers = hasReacted
-        ? currentUsers.filter((id) => id !== deviceId)
-        : [...currentUsers, deviceId];
+        ? currentUsers.filter((id) => id !== effectiveDeviceId)
+        : [...currentUsers, effectiveDeviceId];
 
       const updatedReactions = {
         ...currentReactions,
@@ -253,16 +278,19 @@ export function useChatStore(deviceId: string, userProfile: { alias: string; ava
         prev.map((m) => (m.id === messageId ? { ...m, reactions: updatedReactions } : m))
       );
 
-      // Write to Firestore
+      // Write to Firestore using the message's specific parent room
       try {
-        await updateDoc(doc(db, 'chatRooms', activeRoomId, 'messages', messageId), {
-          reactions: updatedReactions,
-        });
+        await updateDoc(
+          doc(db, 'chatRooms', target.roomId, 'messages', messageId),
+          cleanForFirestore({
+            reactions: updatedReactions,
+          })
+        );
       } catch (err) {
-        handleFirestoreError(err, OperationType.UPDATE, `chatRooms/${activeRoomId}/messages/${messageId}`);
+        handleFirestoreError(err, OperationType.UPDATE, `chatRooms/${target.roomId}/messages/${messageId}`);
       }
     },
-    [messages, deviceId, activeRoomId]
+    [messages, effectiveDeviceId]
   );
 
   // CREATE NEW CHAT ROOM (SYNCED TO FIRESTORE)
@@ -280,7 +308,7 @@ export function useChatStore(deviceId: string, userProfile: { alias: string; ava
       setActiveRoomId(newRoom.id);
 
       try {
-        await setDoc(doc(db, 'chatRooms', newRoom.id), newRoom);
+        await setDoc(doc(db, 'chatRooms', newRoom.id), cleanForFirestore(newRoom));
       } catch (err) {
         handleFirestoreError(err, OperationType.WRITE, `chatRooms/${newRoom.id}`);
       }
@@ -293,7 +321,7 @@ export function useChatStore(deviceId: string, userProfile: { alias: string; ava
   // CLEAR ROOM HISTORY (ADMIN ACTION - SYNCED TO FIRESTORE)
   const clearRoomHistory = useCallback(
     async (roomId: string) => {
-      setMessages([]);
+      setMessages((prev) => prev.filter((m) => m.roomId !== roomId));
       try {
         const snap = await getDocs(collection(db, 'chatRooms', roomId, 'messages'));
         const deletePromises = snap.docs.map((docSnap) => deleteDoc(docSnap.ref));
@@ -306,9 +334,16 @@ export function useChatStore(deviceId: string, userProfile: { alias: string; ava
   );
 
   // CLEAR ALL HISTORY
-  const clearAllChatHistory = useCallback(() => {
+  const clearAllChatHistory = useCallback(async () => {
     setMessages([]);
     localStorage.removeItem(CHAT_STORAGE_KEY);
+    try {
+      const snap = await getDocs(collectionGroup(db, 'messages'));
+      const deletePromises = snap.docs.map((docSnap) => deleteDoc(docSnap.ref));
+      await Promise.all(deletePromises);
+    } catch (err) {
+      handleFirestoreError(err, OperationType.DELETE, 'messages (collectionGroup)');
+    }
   }, []);
 
   return {

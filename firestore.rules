@@ -58,6 +58,11 @@ service cloud.firestore {
       }
     }
 
+    // Support collectionGroup reads for real-time cross-room message sync
+    match /{path=**}/messages/{messageId} {
+      allow read: if true;
+    }
+
     // Course Access Passes
     match /accessCodes/{codeId} {
       allow read: if true;
